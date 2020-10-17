@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/pwsimon/indexedDB/issues"
   },
-  "homepage": "https://github.com/pwsimon/indexedDB#readme"
+  "homepage": "https://github.com/pwsimon/indexedDB#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0"
+  }
 }
