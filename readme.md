@@ -1,3 +1,8 @@
+# Install/Setup
+ich mach mal einen versuch mit einem Build-Environment (npm)
+gem [BabelJS - Environment Setup](https://www.tutorialspoint.com/babeljs/babeljs_environment_setup.htm)
+
+# Same Origin
 alle anwendungen (PWA's) die von einem anderen Host bereitgestellt werden bzw. ein login auf einem beliebigen server erlauben haben ein ernstes Problem mit der "Same Origin Policy"
 1.) credentialsManager API
 der browser kann Credentials ausschliesslich auf basis der BaseUrl der Anwendung verwalten.  

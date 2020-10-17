@@ -1,0 +1,19 @@
+{
+  "name": "indexeddb",
+  "version": "1.0.0",
+  "description": "my first trial using indexedDB incl. dexie.js",
+  "main": "estos.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pwsimon/indexedDB.git"
+  },
+  "author": "Peter Simon",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pwsimon/indexedDB/issues"
+  },
+  "homepage": "https://github.com/pwsimon/indexedDB#readme"
+}
