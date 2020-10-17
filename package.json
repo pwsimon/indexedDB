@@ -4,7 +4,7 @@
   "description": "my first trial using indexedDB incl. dexie.js",
   "main": "estos.js",
   "scripts": {
-    "babel": "babel --presets es2015 src/index.js -o dev/index.bundles.js",
+    "babel": "babel -sourceMaps --presets es2015 src/index.js -o dev/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

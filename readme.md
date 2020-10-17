@@ -17,6 +17,12 @@ Ein clone zur entwicklung laeuft dann:
     npm install --only=dev
     npm run babel
 
+# Development-Cycle
+[Use a source map](https://developer.mozilla.org/de/docs/Tools/Debugger/How_to/Use_a_source_map)
+fuer den Development-Cycle nutzen wir einen ReBuild onChange
+    npx babel --watch src --out-dir dev --presets es2015
+    npx babel -sourceMaps --presets es2015 src/index.js -o dev/index.js
+
 # Same Origin
 alle anwendungen (PWA's) die von einem anderen Host bereitgestellt werden bzw. ein login auf einem beliebigen server erlauben haben ein ernstes Problem mit der "Same Origin Policy"
 1.) credentialsManager API
