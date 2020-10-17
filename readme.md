@@ -6,14 +6,16 @@ Ein deployment/installation laeuft dann:
 [Cloning with HTTPS URLs](https://docs.github.com/en/free-pro-team@latest/github/using-git/which-remote-url-should-i-use#cloning-with-https-urls), [npm install](https://docs.npmjs.com/cli/install.html)
 
     git clone "https://github.com/pwsimon/indexedDB.git"
-    npm install
-
+    cd indexedDB
+    npm install --only=prod
+    npm run babel
 
 Ein clone zur entwicklung laeuft dann:
 
     git clone "https://github.com/pwsimon/indexedDB.git"  
+    cd indexedDB
     npm install --only=dev
-
+    npm run babel
 
 # Same Origin
 alle anwendungen (PWA's) die von einem anderen Host bereitgestellt werden bzw. ein login auf einem beliebigen server erlauben haben ein ernstes Problem mit der "Same Origin Policy"
