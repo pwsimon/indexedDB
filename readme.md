@@ -18,10 +18,11 @@ Ein clone zur entwicklung laeuft dann:
     npm run babel
 
 # Development-Cycle
-[Use a source map](https://developer.mozilla.org/de/docs/Tools/Debugger/How_to/Use_a_source_map)
+[Use a source map](https://developer.mozilla.org/de/docs/Tools/Debugger/How_to/Use_a_source_map)  
+[Set Up Persistence with DevTools Workspaces](https://developers.google.com/web/tools/setup/setup-workflow)  
 fuer den Development-Cycle nutzen wir einen ReBuild onChange
-    npx babel --watch src --out-dir dev --presets es2015
-    npx babel -sourceMaps --presets es2015 src/index.js -o dev/index.js
+    npx babel --watch src --out-dir dev
+    npx babel src -d dev
 
 # Same Origin
 alle anwendungen (PWA's) die von einem anderen Host bereitgestellt werden bzw. ein login auf einem beliebigen server erlauben haben ein ernstes Problem mit der "Same Origin Policy"
