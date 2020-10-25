@@ -1,6 +1,9 @@
-var arrowfunction = () => {
 /*
-* um das 'ordentlich' zu debuggen braucht es vermutlich eine source-map
+* needs Babel transpile and sourceMaps
 */
-	return "Hello on demand";
-}
+window.addEventListener("load", function() {
+	console.log("enter index.js::onload()");
+	document.getElementById("btnQuery").addEventListener("click", e => {
+			console.log("here we go from babel transpiler");
+		});
+});

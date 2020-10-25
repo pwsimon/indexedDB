@@ -44,7 +44,7 @@ const g_rgConversation = [
 		},
 	];
 
-window.onload = function() {
+window.addEventListener("load", function() {
 	document.getElementById("btnChat").addEventListener("click", function(e) {
 			var db = new Dexie("Chat");
 
@@ -78,4 +78,4 @@ window.onload = function() {
 				console.log("error:", error);
 			});
 		});
-}
+});
