@@ -101,5 +101,13 @@ window.addEventListener("load", function() {
 		}).catch(function (error) {
 			console.error(error);
 		});
+
+		db.Cpsi_pws.get("2").then(function (message) {
+			console.log("Found: ", message);
+			console.assert(db.isOpen(), "not open");
+			eChat.count(db.backendDB(), "Cpsi_pws");
+		}).catch(function (error) {
+			console.error(error);
+		});
 	});
 });
