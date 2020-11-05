@@ -54,7 +54,7 @@ const g_rgConversation = [
 			asnChatMessage: {
 					u8sMessage: "wurts (even)"
 				}
-			// u8sEventCrossRefID: "jBnFffRDPlOKh" // wird dynamisch eryzeugt und haengt deshalb hinten an
+			// u8sEventCrossRefID: "<iConvSequenceID>" // wird dynamisch eryzeugt und haengt deshalb hinten an
 		},
 		{
 			iConvSequenceID: 23,
@@ -63,7 +63,16 @@ const g_rgConversation = [
 			asnChatMessage: {
 					u8sMessage: "wurts (odd)"
 				}
-			// u8sEventCrossRefID: "jBnFffRDPlOKh" // wird dynamisch eryzeugt und haengt deshalb hinten an
+			// u8sEventCrossRefID: "<iConvSequenceID>" // wird dynamisch eryzeugt und haengt deshalb hinten an
+		},
+		{
+			iConvSequenceID: 26,
+			u8sSenderURI: "sip:pws@estos.de",
+			asnCreateTime: "2020-10-14T13:26:00.000Z",
+			asnChatMessage: {
+					u8sMessage: "wir brauchen antworten (even)"
+				}
+			// u8sEventCrossRefID: "<iConvSequenceID>" // wird dynamisch eryzeugt und haengt deshalb hinten an
 		},
 		{
 			iConvSequenceID: 27,
@@ -72,7 +81,7 @@ const g_rgConversation = [
 			asnChatMessage: {
 					u8sMessage: "gerhard (odd)"
 				}
-			// u8sEventCrossRefID: "jBnFffRDPlOKh" // wird dynamisch eryzeugt und haengt deshalb hinten an
+			// u8sEventCrossRefID: "<iConvSequenceID>" // wird dynamisch eryzeugt und haengt deshalb hinten an
 		},
 		{
 			iConvSequenceID: 30,
@@ -91,7 +100,7 @@ function insert(oStore, rgInsert) {
 * das put ist zwar async aber nicht das forEach
 * wie bekomme ich EINEN trigger wenn ALLE put's fertig sind?
 * siehe: insertAsync(), insertBulk()
-* unterschied zwischen table.put() und table.Add()
+* einfuegen mit put(), Add(), update(). createOrUpdate, Add only, Update only
 */
 		oStore.put(message).then(function(key) { https://dexie.org/docs/Dexie/Dexie.%5Btable%5D
 			console.log("put:", key, "done!");
@@ -104,11 +113,22 @@ function insertAsync(oStore, rgInsert) {
 	// returnWert ist ein Array of Promises
 	return rgInsert.map(msg => {
 			msg.u8sEventCrossRefID = msg.u8sEventCrossRefID || msg.iConvSequenceID.toString();
-			oStore.put(msg);
+			oStore.put(msg); // Adds new or replaces existing object in the object store.
 		});
 }
-function insertTransaction() {
-	
+function modifyTransaction(db) {
+	db.transaction('rw', db.Cpsi_pws, async () => {
+		const rec = await db.Cpsi_pws.get(23);
+		rec.bRead = true;
+		await db.Cpsi_pws.add(rec);
+
+		db.Cpsi_pws.filter(value => value.bRead)
+			.each(function (msg) {
+				console.log("Found Msg: ", msg);
+			});
+	}).catch (function (e) {
+		console.error(e.stack);
+	});
 }
 window.addEventListener("load", function() {
 	document.getElementById("btnChat").addEventListener("click", function(e) {
@@ -159,33 +179,36 @@ window.addEventListener("load", function() {
 		});
 	});
 	document.getElementById("btnHashLocation").addEventListener("click", e => {
-			var db = new Dexie("Conversations");
+			const db = new Dexie("Conversations"),
+				iHashLocation = 23;
 
 			// one store per conversation
 			db.version(1).stores(g_stores);
 
-			db.Cpsi_pws.where("iConvSequenceID") // return https://dexie.org/docs/WhereClause/WhereClause
-				.aboveOrEqual(23) // return https://dexie.org/docs/Collection/Collection
+			let rgResultset = new Array(2);
+			rgResultset[0] = db.Cpsi_pws.where("iConvSequenceID")
+				.below(iHashLocation)
+				.limit(blockSize)
+				.toArray()
+
+			rgResultset[1] = db.Cpsi_pws.where("iConvSequenceID") // return https://dexie.org/docs/WhereClause/WhereClause
+				.aboveOrEqual(iHashLocation) // return https://dexie.org/docs/Collection/Collection
 				.limit(blockSize) // return https://dexie.org/docs/Collection/Collection
-				.each(function (message) {
-						console.log("aboveOrEqual(23), Found: ", message);
-					}).catch(function (error) {
-						console.error(error);
-					});
+				.toArray()
+
+			Promise.all(rgResultset).then(values => { // concatenate both resultsets
+				const Resultset = values[0].concat(values[1]);
+				console.log("Result: ", Resultset.sort((a, b) => a.iConvSequenceID < b.iConvSequenceID));
+			});
 		});
 	document.getElementById("btnPage").addEventListener("click", function(e) {
 		var db = new Dexie("Conversations");
 
 		// one store per conversation
 		db.version(1).stores(g_stores);
+		modifyTransaction(db);
 
-		db.Cpsi_pws.where("iConvSequenceID").aboveOrEqual(2).each(function (message) {
-			console.log("Found: ", message);
-		}).catch(function (error) {
-			console.error(error);
-		});
-
-		db.Cpsi_pws.get("2").then(function (message) {
+		db.Cpsi_pws.get("23").then(function (message) { // https://dexie.org/docs/Table/Table.get()
 			console.log("Found: ", message);
 			console.assert(db.isOpen(), "not open");
 			eChat.count(db.backendDB(), "Cpsi_pws");
