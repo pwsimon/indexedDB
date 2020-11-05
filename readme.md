@@ -21,6 +21,7 @@ Ein clone zur entwicklung laeuft dann:
 [Use a source map](https://developer.mozilla.org/de/docs/Tools/Debugger/How_to/Use_a_source_map)  
 [Set Up Persistence with DevTools Workspaces](https://developers.google.com/web/tools/setup/setup-workflow)  
 fuer den Development-Cycle nutzen wir einen ReBuild onChange
+
     npx babel --watch src --out-dir dev
     npx babel src -d dev
 

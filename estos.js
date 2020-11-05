@@ -1,6 +1,7 @@
 import * as eChat from './modules/mChat.js';
 
 // predefined demo data to create stores
+const blockSize = 2;
 const g_rgChat = [
 		{
 			u8sConversationID: "psi@estos.de;pws@estos.de",
@@ -22,73 +23,130 @@ const g_rgChat = [
 				}
 		},
 	];
-const g_schema = "u8sEventCrossRefID, iConvSequenceID";
+const g_schema = "u8sEventCrossRefID, iConvSequenceID"; // The first entry in the schema string will always represent the primary key.
 const g_stores = {
 		Cpsi_pws: g_schema,
 		Ceb_psi: g_schema
 	};
 const g_rgConversation = [
 		{
-			iConvSequenceID: 1,
+			iConvSequenceID: 10,
 			u8sSenderURI: "sip:psi@estos.de",
-			asnCreateTime: "2020-10-14T13:00:00.000Z", // date.toISOString()
+			asnCreateTime: "2020-10-14T13:10:00.000Z", // date.toISOString()
 			asnChatMessage: {
-					u8sMessage: "hurts"
+					u8sMessage: "hurts (even)"
 				},
 			u8sEventCrossRefID: "jBnFffRDPlOKh"
 		},
 		{
-			iConvSequenceID: 2,
+			iConvSequenceID: 15,
 			u8sSenderURI: "sip:psi@estos.de",
-			asnCreateTime: "2020-10-14T13:01:00.000Z",
+			asnCreateTime: "2020-10-14T13:15:00.000Z", // date.toISOString()
 			asnChatMessage: {
-					u8sMessage: "wurts"
+					u8sMessage: "anywhere (odd)"
+				},
+			u8sEventCrossRefID: "jBRffxRDPltKh"
+		},
+		{
+			iConvSequenceID: 20,
+			u8sSenderURI: "sip:psi@estos.de",
+			asnCreateTime: "2020-10-14T13:20:00.000Z",
+			asnChatMessage: {
+					u8sMessage: "wurts (even)"
 				}
 			// u8sEventCrossRefID: "jBnFffRDPlOKh" // wird dynamisch eryzeugt und haengt deshalb hinten an
 		},
 		{
-			iConvSequenceID: 3,
-			u8sSenderURI: "sip:pws@estos.de",
-			asnCreateTime: "2020-10-14T13:02:00.000Z",
+			iConvSequenceID: 23,
+			u8sSenderURI: "sip:psi@estos.de",
+			asnCreateTime: "2020-10-14T13:23:00.000Z",
 			asnChatMessage: {
-					u8sMessage: "answer"
+					u8sMessage: "wurts (odd)"
+				}
+			// u8sEventCrossRefID: "jBnFffRDPlOKh" // wird dynamisch eryzeugt und haengt deshalb hinten an
+		},
+		{
+			iConvSequenceID: 27,
+			u8sSenderURI: "sip:psi@estos.de",
+			asnCreateTime: "2020-10-14T13:27:00.000Z",
+			asnChatMessage: {
+					u8sMessage: "gerhard (odd)"
+				}
+			// u8sEventCrossRefID: "jBnFffRDPlOKh" // wird dynamisch eryzeugt und haengt deshalb hinten an
+		},
+		{
+			iConvSequenceID: 30,
+			u8sSenderURI: "sip:pws@estos.de",
+			asnCreateTime: "2020-10-14T13:30:00.000Z",
+			asnChatMessage: {
+					u8sMessage: "answer (even)"
 				},
 			u8sEventCrossRefID: "jBrAffRDPlOKh"
 		}
 	];
-
+function insert(oStore, rgInsert) {
+	rgInsert.forEach(message => {
+		message.u8sEventCrossRefID = message.u8sEventCrossRefID || message.iConvSequenceID.toString();
+		// das put ist zwar async aber nicht das forEach
+		// wie bekomme ich einen trigger wenn ALLE put' fertig sind?
+		oStore.put(message).then(function(key) {
+			console.log("put:", key, "done!");
+		}).catch(function(error) {
+			console.log("error:", error);
+		});
+	});
+}
 window.addEventListener("load", function() {
 	document.getElementById("btnChat").addEventListener("click", function(e) {
-			var db = new Dexie("Chat");
+		var db = new Dexie("Chat");
 
-			// one store for ALL messages even which conversation
-			db.version(1).stores({
-				messages: "u8sEventCrossRefID, iConvSequenceID"
-			});
-
-			g_rgChat.forEach(message => {
-				message.u8sEventCrossRefID = message.u8sEventCrossRefID || message.iConvSequenceID.toString();
-				db.messages.put(message).then(function(key) { // https://dexie.org/docs/Table/Table.put()
-					console.log("put:", key, "done!");
-				}).catch(function(error) {
-					console.log("error:", error);
-				});
-			})
+		// one store for ALL messages even which conversation
+		db.version(1).stores({
+			messages: "u8sEventCrossRefID, iConvSequenceID"
 		});
+
+		g_rgChat.forEach(message => {
+			message.u8sEventCrossRefID = message.u8sEventCrossRefID || message.iConvSequenceID.toString();
+			db.messages.put(message).then(function(key) { // https://dexie.org/docs/Table/Table.put()
+				console.log("put:", key, "done!");
+			}).catch(function(error) {
+				console.log("error:", error);
+			});
+		});
+	});
 	document.getElementById("btnConv").addEventListener("click", function(e) {
+		var db = new Dexie("Conversations");
+
+		// one store per conversation
+		// https://dexie.org/docs/Tutorial/Getting-started
+		db.version(1).stores(g_stores);
+		const rgInsert = g_rgConversation.filter(Msg => Msg.iConvSequenceID % 2);
+		// https://dexie.org/docs/Table/Table.bulkAdd()
+		insert(db.Cpsi_pws, rgInsert); // https://dexie.org/docs/Dexie/Dexie.%5Btable%5D
+	});
+	document.getElementById("btnInsert").addEventListener("click", function(e) {
+		var db = new Dexie("Conversations");
+
+		// one store per conversation
+		// https://dexie.org/docs/Tutorial/Getting-started
+		db.version(1).stores(g_stores);
+		const rgInsert = g_rgConversation.filter(Msg => !(Msg.iConvSequenceID % 2));
+		insert(db.Cpsi_pws, rgInsert);
+	});
+	document.getElementById("btnHashLocation").addEventListener("click", e => {
 			var db = new Dexie("Conversations");
 
 			// one store per conversation
-			// https://dexie.org/docs/Tutorial/Getting-started
 			db.version(1).stores(g_stores);
-			g_rgConversation.forEach(message => {
-				message.u8sEventCrossRefID = message.u8sEventCrossRefID || message.iConvSequenceID.toString();
-				db.Cpsi_pws.put(message).then(function(key) {
-					console.log("put:", key, "done!");
-				}).catch(function(error) {
-					console.log("error:", error);
-				});
-			});
+
+			db.Cpsi_pws.where("iConvSequenceID") // return https://dexie.org/docs/WhereClause/WhereClause
+				.aboveOrEqual(23) // return https://dexie.org/docs/Collection/Collection
+				.limit(blockSize) // return https://dexie.org/docs/Collection/Collection
+				.each(function (message) {
+						console.log("aboveOrEqual(23), Found: ", message);
+					}).catch(function (error) {
+						console.error(error);
+					});
 		});
 	document.getElementById("btnPage").addEventListener("click", function(e) {
 		var db = new Dexie("Conversations");
