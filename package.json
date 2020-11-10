@@ -22,5 +22,8 @@
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1"
+  },
+  "dependencies": {
+    "dexie": "^3.0.2"
   }
 }
