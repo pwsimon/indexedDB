@@ -119,18 +119,33 @@ function insertAsync(oStore, rgInsert) {
 			oStore.put(msg); // Adds new or replaces existing object in the object store.
 		});
 }
-function modifyTransaction(db) {
+function transYield(db) {
 	// wont work
 	// https://dexie.org/docs/Simplify-with-yield#use-in-dbtransaction
 	db.transaction('rw', db.Cpsi_pws, function*() {
-		const rec = yield db.Cpsi_pws.get(23);
+		var rec = yield db.Cpsi_pws.get(23);
+		console.assert(rec, "yield FAILED");
+	}).then(() => {
+		console.log("transYield() FINISHED");
+	}).catch (e => {
+		console.error(e.stack);
+	});
+}
+function transAsync(db) {
+	// https://dexie.org/docs/Dexie/Dexie.transaction()#sample
+	db.transaction('rw', db.Cpsi_pws, async () => {
+		const rec = await db.Cpsi_pws.get(23);
+		console.assert(rec, "await FAILED");
+		return;
 		rec.bRead = true;
-		yield db.Cpsi_pws.add(rec);
+		await db.Cpsi_pws.add(rec);
 
 		db.Cpsi_pws.filter(value => value.bRead)
 			.each(function (msg) {
-				console.log("Found Msg: ", msg);
+				console.log("transAsync() Found Msg: ", msg);
 			});
+	}).then(() => {
+		console.log("transAsync() FINISHED");
 	}).catch (e => {
 		console.error(e.stack);
 	});
@@ -211,12 +226,15 @@ window.addEventListener("load", function() {
 
 		// one store per conversation
 		db.version(1).stores(g_stores);
-		// modifyTransaction(db);
+		transYield(db);
+		transAsync(db);
 
-		UCConnect.discover()
+		/* UCConnect.discover("estos.de")
 			.then(data => UCConnect.discoverVersion())
 			.then(data => UCConnect.loginBasicAuth("user", "passwd"))
-			.then(data => console.log(data));
+			.then(data => UCConnect.enterLoop(msg => {
+					console.log(msg);
+				})); */
 
 		Dexie.spawn(function*() { // https://dexie.org/docs/Dexie/Dexie.spawn()
 			const msg = yield db.Cpsi_pws.get("23"); // https://dexie.org/docs/Table/Table.get()
