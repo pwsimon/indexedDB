@@ -1,4 +1,7 @@
+// import Dexie from './node_modules/dexie/dist/dexie.js';
+import * as UCConnect from './modules/mUCConnect.js';
 import * as eChat from './modules/mChat.js';
+
 
 // predefined demo data to create stores
 const blockSize = 2;
@@ -117,8 +120,9 @@ function insertAsync(oStore, rgInsert) {
 		});
 }
 function modifyTransaction(db) {
-	// https://dexie.org/docs/Simplify-with-yield
-	db.transaction('rw', db.Cpsi_pws, Dexie.spawn(function*() {
+	// wont work
+	// https://dexie.org/docs/Simplify-with-yield#use-in-dbtransaction
+	db.transaction('rw', db.Cpsi_pws, function*() {
 		const rec = yield db.Cpsi_pws.get(23);
 		rec.bRead = true;
 		yield db.Cpsi_pws.add(rec);
@@ -129,7 +133,7 @@ function modifyTransaction(db) {
 			});
 	}).catch (e => {
 		console.error(e.stack);
-	}));
+	});
 }
 window.addEventListener("load", function() {
 	document.getElementById("btnChat").addEventListener("click", function(e) {
@@ -208,6 +212,11 @@ window.addEventListener("load", function() {
 		// one store per conversation
 		db.version(1).stores(g_stores);
 		// modifyTransaction(db);
+
+		UCConnect.discover()
+			.then(data => UCConnect.discoverVersion())
+			.then(data => UCConnect.loginBasicAuth("user", "passwd"))
+			.then(data => console.log(data));
 
 		Dexie.spawn(function*() { // https://dexie.org/docs/Dexie/Dexie.spawn()
 			const msg = yield db.Cpsi_pws.get("23"); // https://dexie.org/docs/Table/Table.get()
