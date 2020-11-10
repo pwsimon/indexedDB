@@ -35,6 +35,9 @@
 * - steuerung von subscribe/unsubscribe
 * - erzeugen von korrellationsId's, vergabe mit request und zusammenfuehren mit response.
 * - zusammenfuehren von segmenten.
+* Advanced:
+* - Timeout
+* - Begin/End-OfHistory
 *
 * Hinweis:
 * im Zuge von "Offline first" muss man eig. vollstaendig anders denken.

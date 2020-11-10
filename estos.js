@@ -117,18 +117,19 @@ function insertAsync(oStore, rgInsert) {
 		});
 }
 function modifyTransaction(db) {
-	db.transaction('rw', db.Cpsi_pws, async () => {
-		const rec = await db.Cpsi_pws.get(23);
+	// https://dexie.org/docs/Simplify-with-yield
+	db.transaction('rw', db.Cpsi_pws, Dexie.spawn(function*() {
+		const rec = yield db.Cpsi_pws.get(23);
 		rec.bRead = true;
-		await db.Cpsi_pws.add(rec);
+		yield db.Cpsi_pws.add(rec);
 
 		db.Cpsi_pws.filter(value => value.bRead)
 			.each(function (msg) {
 				console.log("Found Msg: ", msg);
 			});
-	}).catch (function (e) {
+	}).catch (e => {
 		console.error(e.stack);
-	});
+	}));
 }
 window.addEventListener("load", function() {
 	document.getElementById("btnChat").addEventListener("click", function(e) {
@@ -206,13 +207,14 @@ window.addEventListener("load", function() {
 
 		// one store per conversation
 		db.version(1).stores(g_stores);
-		modifyTransaction(db);
+		// modifyTransaction(db);
 
-		db.Cpsi_pws.get("23").then(function (message) { // https://dexie.org/docs/Table/Table.get()
-			console.log("Found: ", message);
+		Dexie.spawn(function*() { // https://dexie.org/docs/Dexie/Dexie.spawn()
+			const msg = yield db.Cpsi_pws.get("23"); // https://dexie.org/docs/Table/Table.get()
+			console.log("Found: ", msg);
 			console.assert(db.isOpen(), "not open");
 			eChat.count(db.backendDB(), "Cpsi_pws");
-		}).catch(function (error) {
+		}).catch(e => {
 			console.error(error);
 		});
 	});
