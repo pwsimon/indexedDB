@@ -150,6 +150,18 @@ function transAsync(db) {
 		console.error(e.stack);
 	});
 }
+async function asyncAwait(db) {
+	const rec = await db.Cpsi_pws.get(23);
+	console.assert(rec, "await FAILED");
+	rec.bRead = true;
+	await db.Cpsi_pws.add(rec);
+
+	await db.Cpsi_pws.filter(value => value.bRead)
+		.each(function (msg) {
+			console.log("transAsync() Found Msg: ", msg);
+		});
+	console.log("asyncAwait() FINISHED");
+}
 window.addEventListener("load", function() {
 	document.getElementById("btnChat").addEventListener("click", function(e) {
 		var db = new Dexie("Chat");
@@ -226,15 +238,16 @@ window.addEventListener("load", function() {
 
 		// one store per conversation
 		db.version(1).stores(g_stores);
-		transYield(db);
-		transAsync(db);
+		// transYield(db);
+		// transAsync(db);
+		// asyncAwait(db);
 
-		/* UCConnect.discover("estos.de")
+		UCConnect.discover("estos.de")
 			.then(data => UCConnect.discoverVersion())
 			.then(data => UCConnect.loginBasicAuth("user", "passwd"))
 			.then(data => UCConnect.enterLoop(msg => {
 					console.log(msg);
-				})); */
+				}));
 
 		Dexie.spawn(function*() { // https://dexie.org/docs/Dexie/Dexie.spawn()
 			const msg = yield db.Cpsi_pws.get("23"); // https://dexie.org/docs/Table/Table.get()

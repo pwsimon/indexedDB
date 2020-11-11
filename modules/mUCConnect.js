@@ -35,13 +35,12 @@ function loginBasicAuth(sUser, sPasswd) {
 	const sUrl = oDiscoverClient.redirect + sClientAppId, // "http://ws-ms.estos.de:7224/ws/client/createsession"
 		oSettings = {
 				method: "POST",
-				contentType: "application/json",
 				headers: {
+					"Content-Type": "application/json",
 					Authorization: "Basic " + btoa(sUser + ":" + sPasswd),
 					"X-EPID": mUCSID,
 					"X-UCSID": mUCSID
 				},
-				dataType: "json",
 				body: JSON.stringify({ negotiate: { iClientProtocolVersion: oUCServerVersion.ucserverprotocolversion } }) // 61
 			};
 
@@ -58,12 +57,11 @@ function subscribe() {
 			},
 		oSSubscribe = {
 			method: "POST",
-			contentType: "application/json",
 			headers: {
+				"Content-Type": "application/json",
 				"X-UCSID": mUCSID,
 				"X-UCSESSIONID": oSession.sessionid
 			},
-			dataType: "json",
 			body: JSON.stringify(oBody)
 			};
 	return fetch(urlSubscribe, oSSubscribe)
@@ -76,7 +74,7 @@ function enterLoop(onMessage) {
 	oWebSocket = new WebSocket(sURL + "/ws/client/websocket?x-ucsessionid=" + oSession.sessionid);
 	oWebSocket.onopen = function (evt) {
 		console.log("wss::onOpen()");
-		// subscribe();
+		subscribe();
 	}
 	oWebSocket.onMessage = onMessage;
 }
