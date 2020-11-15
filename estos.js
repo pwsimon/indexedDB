@@ -179,7 +179,6 @@ window.addEventListener("load", function() {
 				// und wir machen wieder einen string daraus damit wir ihn im LocalStorage unterbringen
 				const oLoginConnectInfo = {
 					ucsid: sUCSID,
-					user: "",
 					sToken: oUserToken.sToken
 				};
 				window.localStorage.setItem(keyLoginConnectInfo, JSON.stringify(oLoginConnectInfo));
@@ -248,6 +247,16 @@ window.addEventListener("load", function() {
 				}))
 			.then(data => UCConnect.subscribe())
 			.then(data => UCConnect.getDatabaseId())
+			.then(data => UCConnect.getLoginToken())
+			.then(oUserToken => {
+					// refresh token (extend livetime)
+					const oUpdate = {
+						ucsid: oLoginConnectInfo.ucsid,
+						sToken: oUserToken.sToken
+					};
+					window.localStorage.setItem(keyLoginConnectInfo, JSON.stringify(oUpdate));
+					return UCConnect.getDiffUpdate();
+				})
 			.catch(e => {
 				console.log("FAILED:", e);
 			});

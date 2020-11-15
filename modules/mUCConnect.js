@@ -118,6 +118,35 @@ function getLoginToken() {
 	return fetch(urlGetUserToken, oGetUserToken)
 		.then(response => response.json());
 }
+function refreshLoginToken(sKey) {
+	return getLoginToken()
+		.then(oUserToken => {
+			const oUpdate = {
+				ucsid: mUCSID,
+				sToken: oUserToken.sToken
+			};
+			window.localStorage.setItem(sKey, JSON.stringify(oUpdate));
+		});
+}
+function getDiffUpdate() {
+	const urlGetDiffUpdate = oDiscoverClient.redirect + "/ws/client/asnChatGetDiffUpdate",
+		oBody = {
+				iLastKnownGlobTransactionID: 0,
+				u8sEventListCrossRefID: "mGetDiffUpdate",
+
+			},
+		oGetDiffUpdate = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-UCSID": mUCSID,
+				"X-UCSESSIONID": oSession.sessionid
+			},
+			body: JSON.stringify(oBody)
+			};
+	return fetch(urlGetDiffUpdate, oGetDiffUpdate)
+		.then(response => response.json());
+}
 function enterLoop(onMessage) {
 	const _sURL = oDiscoverClient.redirect.replace("https://", "wss://"),
 		sURL = _sURL.replace("http://", "ws://");
@@ -125,8 +154,18 @@ function enterLoop(onMessage) {
 	oWebSocket = new WebSocket(sURL + "/ws/client/websocket?x-ucsessionid=" + oSession.sessionid);
 	oWebSocket.onopen = function (evt) {
 		console.log("wss::onOpen()");
-	}
+	};
 	oWebSocket.onMessage = onMessage;
 }
 
-export { discover, discoverVersion, loginBasicAuth, loginTokenAuth, subscribe, getLoginToken, getDatabaseId, enterLoop }; // 
+export {
+	discover,
+	discoverVersion,
+	loginBasicAuth,
+	loginTokenAuth,
+	subscribe,
+	getLoginToken,
+	refreshLoginToken,
+	getDatabaseId,
+	getDiffUpdate,
+	enterLoop }; // 
