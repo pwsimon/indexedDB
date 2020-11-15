@@ -128,12 +128,13 @@ function refreshLoginToken(sKey) {
 			window.localStorage.setItem(sKey, JSON.stringify(oUpdate));
 		});
 }
-function getDiffUpdate() {
+function getDiffUpdate(sConversationId) {
 	const urlGetDiffUpdate = oDiscoverClient.redirect + "/ws/client/asnChatGetDiffUpdate",
 		oBody = {
+				iMaxEvents: 15,
+				u8sConversationID: sConversationId,
 				iLastKnownGlobTransactionID: 0,
-				u8sEventListCrossRefID: "mGetDiffUpdate",
-
+				u8sEventListCrossRefID: "mGetDiffUpdate"
 			},
 		oGetDiffUpdate = {
 			method: "POST",
@@ -147,6 +148,19 @@ function getDiffUpdate() {
 	return fetch(urlGetDiffUpdate, oGetDiffUpdate)
 		.then(response => response.json());
 }
+function handleSegment(oArg) {
+	if("AsnChatEventArgument" === oArg._type) {
+		const rgChatEventList = oArg.asnChatEventList;
+		console.log("length:", rgChatEventList.length, ", ListCrossRefID:", oArg.u8sEventListCrossRefID);
+		console.log("0:", rgChatEventList[0]);
+		if(oArg.bLastSegment) {
+			console.log("bLastSegment!")
+		}
+		return true;
+	} else
+		console.log("unhandled Type:", oData[0].invoke.argument._type);
+	return false;
+}
 function enterLoop(onMessage) {
 	const _sURL = oDiscoverClient.redirect.replace("https://", "wss://"),
 		sURL = _sURL.replace("http://", "ws://");
@@ -155,7 +169,7 @@ function enterLoop(onMessage) {
 	oWebSocket.onopen = function (evt) {
 		console.log("wss::onOpen()");
 	};
-	oWebSocket.onMessage = onMessage;
+	oWebSocket.onmessage = onMessage;
 }
 
 export {
@@ -168,4 +182,5 @@ export {
 	refreshLoginToken,
 	getDatabaseId,
 	getDiffUpdate,
+	handleSegment,
 	enterLoop }; // 

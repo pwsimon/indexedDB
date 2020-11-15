@@ -243,7 +243,10 @@ window.addEventListener("load", function() {
 			.then(data => UCConnect.discoverVersion())
 			.then(data => UCConnect.loginTokenAuth(oLoginConnectInfo.sToken))
 			.then(data => UCConnect.enterLoop(msg => {
-					console.log(msg);
+					const oData = JSON.parse(msg.data);
+					if(UCConnect.handleSegment(oData[0].invoke.argument)) {
+					} else
+						console.log("unhandled Type:", oData[0].invoke.argument._type);
 				}))
 			.then(data => UCConnect.subscribe())
 			.then(data => UCConnect.getDatabaseId())
@@ -255,7 +258,7 @@ window.addEventListener("load", function() {
 						sToken: oUserToken.sToken
 					};
 					window.localStorage.setItem(keyLoginConnectInfo, JSON.stringify(oUpdate));
-					return UCConnect.getDiffUpdate();
+					return UCConnect.getDiffUpdate("psi@estos.de;pws@estos.de");
 				})
 			.catch(e => {
 				console.log("FAILED:", e);
