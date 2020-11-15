@@ -4,6 +4,7 @@ import * as eChat from './modules/mChat.js';
 
 
 // predefined demo data to create stores
+const keyLoginConnectInfo = "user-token";
 const blockSize = 2;
 const g_rgChat = [
 		{
@@ -131,9 +132,9 @@ function transYield(db) {
 		console.error(e.stack);
 	});
 }
-function transAsync(db) {
+async function transAsync(db) {
 	// https://dexie.org/docs/Dexie/Dexie.transaction()#sample
-	db.transaction('rw', db.Cpsi_pws, async () => {
+	await db.transaction('rw', db.Cpsi_pws, async () => {
 		const rec = await db.Cpsi_pws.get(23);
 		console.assert(rec, "await FAILED");
 		return;
@@ -151,7 +152,9 @@ function transAsync(db) {
 	});
 }
 async function asyncAwait(db) {
-	const rec = await db.Cpsi_pws.get(23);
+	const pGet = db.Cpsi_pws.get(23); // https://dexie.org/docs/Promise/Promise
+	console.assert(pGet instanceof Dexie.Promise, "NOT a Promise"); // ACHTUNG
+	const rec = await pGet;
 	console.assert(rec, "await FAILED");
 	rec.bRead = true;
 	await db.Cpsi_pws.add(rec);
@@ -163,6 +166,25 @@ async function asyncAwait(db) {
 	console.log("asyncAwait() FINISHED");
 }
 window.addEventListener("load", function() {
+	document.getElementById("btnLogin").addEventListener("click", function(e) {
+		const sUCSID = "estos.de";
+		UCConnect.discover(sUCSID)
+			.then(data => UCConnect.discoverVersion())
+			.then(data => UCConnect.loginBasicAuth("user", "passwd"))
+			.then(data => UCConnect.getLoginToken())
+			.then(oUserToken => {
+				// console.log(oUserToken);
+				// is natuerlich ein wenig ineffizient.
+				// die UCConnect.getLoginToken() funktion parst die response (string) nach JSON
+				// und wir machen wieder einen string daraus damit wir ihn im LocalStorage unterbringen
+				const oLoginConnectInfo = {
+					ucsid: sUCSID,
+					user: "",
+					sToken: oUserToken.sToken
+				};
+				window.localStorage.setItem(keyLoginConnectInfo, JSON.stringify(oLoginConnectInfo));
+			});
+		});
 	document.getElementById("btnChat").addEventListener("click", function(e) {
 		var db = new Dexie("Chat");
 
@@ -210,6 +232,26 @@ window.addEventListener("load", function() {
 			console.log("inserts: ", values.length);
 		});
 	});
+	document.getElementById("btnImport").addEventListener("click", function(e) {
+		var db = new Dexie("Conversations");
+
+		// one store per conversation
+		// https://dexie.org/docs/Tutorial/Getting-started
+		db.version(1).stores(g_stores);
+
+		const oLoginConnectInfo = JSON.parse(window.localStorage.getItem(keyLoginConnectInfo));
+		UCConnect.discover(oLoginConnectInfo.ucsid)
+			.then(data => UCConnect.discoverVersion())
+			.then(data => UCConnect.loginTokenAuth(oLoginConnectInfo.sToken))
+			.then(data => UCConnect.enterLoop(msg => {
+					console.log(msg);
+				}))
+			.then(data => UCConnect.subscribe())
+			.then(data => UCConnect.getDatabaseId())
+			.catch(e => {
+				console.log("FAILED:", e);
+			});
+		});
 	document.getElementById("btnHashLocation").addEventListener("click", e => {
 			const db = new Dexie("Conversations"),
 				iHashLocation = 23;
@@ -238,16 +280,6 @@ window.addEventListener("load", function() {
 
 		// one store per conversation
 		db.version(1).stores(g_stores);
-		// transYield(db);
-		// transAsync(db);
-		// asyncAwait(db);
-
-		UCConnect.discover("estos.de")
-			.then(data => UCConnect.discoverVersion())
-			.then(data => UCConnect.loginBasicAuth("user", "passwd"))
-			.then(data => UCConnect.enterLoop(msg => {
-					console.log(msg);
-				}));
 
 		Dexie.spawn(function*() { // https://dexie.org/docs/Dexie/Dexie.spawn()
 			const msg = yield db.Cpsi_pws.get("23"); // https://dexie.org/docs/Table/Table.get()
@@ -257,5 +289,15 @@ window.addEventListener("load", function() {
 		}).catch(e => {
 			console.error(error);
 		});
+	});
+	document.getElementById("btnAsyncAwait").addEventListener("click", function(e) {
+		var db = new Dexie("Conversations");
+
+		// one store per conversation
+		db.version(1).stores(g_stores);
+
+		// transYield(db);
+		transAsync(db);
+		// asyncAwait(db);
 	});
 });

@@ -48,6 +48,27 @@ function loginBasicAuth(sUser, sPasswd) {
 		.then(response => response.json())
 		.then(data => oSession = data);
 }
+function loginTokenAuth(sToken) {
+/*
+* im UCConnect fall geht sowieso NUR "Basic" Authentication
+* fuer localUCWeb sieht das schon anders aus
+*/
+	const sUrl = oDiscoverClient.redirect + sClientAppId, // "http://ws-ms.estos.de:7224/ws/client/createsession"
+		oSettings = {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: "JWT " + sToken,
+					"X-EPID": mUCSID,
+					"X-UCSID": mUCSID
+				},
+				body: JSON.stringify({ negotiate: { iClientProtocolVersion: oUCServerVersion.ucserverprotocolversion } }) // 61
+			};
+
+	return fetch(sUrl, oSettings)
+		.then(response => response.json())
+		.then(data => oSession = data);
+}
 function subscribe() {
 	const urlSubscribe = oDiscoverClient.redirect + "/ws/client/asnChatSubscribeEvents",
 		oBody = {
@@ -67,6 +88,36 @@ function subscribe() {
 	return fetch(urlSubscribe, oSSubscribe)
 		.then(response => response.json());
 }
+function getDatabaseId() {
+	const urlGetDatabaseId = oDiscoverClient.redirect + "/ws/client/asnChatGetDatabaseID",
+		oGetDatabaseId = {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					"X-UCSID": mUCSID,
+					"X-UCSESSIONID": oSession.sessionid
+				}
+			};
+	return fetch(urlGetDatabaseId, oGetDatabaseId)
+		.then(response => response.json());
+}
+function getLoginToken() {
+	const urlGetUserToken = oDiscoverClient.redirect + "/ws/client/asnGetUserToken",
+		oBody = {
+				iType: 1 // eUserTokenLogin(1), Token that allows Login To UCServer
+			},
+		oGetUserToken = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-UCSID": mUCSID,
+				"X-UCSESSIONID": oSession.sessionid
+			},
+			body: JSON.stringify(oBody)
+			};
+	return fetch(urlGetUserToken, oGetUserToken)
+		.then(response => response.json());
+}
 function enterLoop(onMessage) {
 	const _sURL = oDiscoverClient.redirect.replace("https://", "wss://"),
 		sURL = _sURL.replace("http://", "ws://");
@@ -74,9 +125,8 @@ function enterLoop(onMessage) {
 	oWebSocket = new WebSocket(sURL + "/ws/client/websocket?x-ucsessionid=" + oSession.sessionid);
 	oWebSocket.onopen = function (evt) {
 		console.log("wss::onOpen()");
-		subscribe();
 	}
 	oWebSocket.onMessage = onMessage;
 }
 
-export { discover, discoverVersion, loginBasicAuth, subscribe, enterLoop }; // 
+export { discover, discoverVersion, loginBasicAuth, loginTokenAuth, subscribe, getLoginToken, getDatabaseId, enterLoop }; // 
