@@ -250,16 +250,11 @@ window.addEventListener("load", function() {
 				}))
 			.then(data => UCConnect.subscribe())
 			.then(data => UCConnect.getDatabaseId())
-			.then(data => UCConnect.getLoginToken())
-			.then(oUserToken => {
-					// refresh token (extend livetime)
-					const oUpdate = {
-						ucsid: oLoginConnectInfo.ucsid,
-						sToken: oUserToken.sToken
-					};
-					window.localStorage.setItem(keyLoginConnectInfo, JSON.stringify(oUpdate));
-					return UCConnect.getDiffUpdate("psi@estos.de;pws@estos.de");
-				})
+			.then(data => UCConnect.refreshLoginToken(keyLoginConnectInfo))
+			.then(data => UCConnect.getDiffUpdate("psi@estos.de;pws@estos.de"))
+			.then(data => {
+				console.log("DiffUpdate:");
+			})
 			.catch(e => {
 				console.log("FAILED:", e);
 			});
